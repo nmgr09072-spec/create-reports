@@ -1,22 +1,40 @@
 """日報入力・修正フォーム。"""
 from django import forms
 
-from .models import WorkRecord
+from .models import Driver, WorkRecord
 
 
 class WorkRecordForm(forms.ModelForm):
     """作業記録の入力・修正フォーム。"""
+
+    driver_name = forms.ChoiceField(
+        choices=[],
+        label="ドライバー名",
+        widget=forms.Select(),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get("instance")
+        drivers = list(Driver.objects.values_list("name", flat=True))
+
+        # 編集時に削除済みドライバー名が既存レコードにある場合も選択肢に残す
+        if instance and instance.driver_name and instance.driver_name not in drivers:
+            drivers = sorted(drivers + [instance.driver_name])
+
+        self.fields["driver_name"].choices = [("", "--- 選択してください ---")] + [
+            (name, name) for name in drivers
+        ]
 
     class Meta:
         model = WorkRecord
         fields = ["date", "driver_name", "job_type", "customer_name", "place", "amount", "time"]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}),
-            "driver_name": forms.TextInput(attrs={"placeholder": "例：田中"}),
             "customer_name": forms.TextInput(attrs={"placeholder": "例：山田様"}),
             "place": forms.TextInput(attrs={"placeholder": "例：新宿区"}),
             "amount": forms.NumberInput(attrs={"placeholder": "例：15000"}),
-            "time": forms.TextInput(attrs={"placeholder": "例：18:00"}),
+            "time": forms.HiddenInput(),
         }
         labels = {
             "date": "日付",
@@ -37,8 +55,30 @@ class FilterForm(forms.Form):
         label="日付で絞り込み",
         widget=forms.DateInput(attrs={"type": "date"}),
     )
-    driver_name = forms.CharField(
+    driver_name = forms.ChoiceField(
         required=False,
         label="ドライバー名で絞り込み",
-        widget=forms.TextInput(attrs={"placeholder": "ドライバー名"}),
+        choices=[],
+        widget=forms.Select(),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        drivers = list(Driver.objects.values_list("name", flat=True))
+        self.fields["driver_name"].choices = [("", "すべてのドライバー")] + [
+            (name, name) for name in drivers
+        ]
+
+
+class DriverForm(forms.ModelForm):
+    """ドライバー登録フォーム。"""
+
+    class Meta:
+        model = Driver
+        fields = ["name"]
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": "例：田中"}),
+        }
+        labels = {
+            "name": "ドライバー名",
+        }

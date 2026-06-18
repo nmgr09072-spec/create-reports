@@ -2,6 +2,21 @@
 from django.db import models
 
 
+class Driver(models.Model):
+    """ドライバーのマスターデータ。"""
+
+    name = models.CharField(max_length=50, unique=True, verbose_name="ドライバー名")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="登録日時")
+
+    class Meta:
+        verbose_name = "ドライバー"
+        verbose_name_plural = "ドライバー"
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class WorkRecord(models.Model):
     """1件の作業記録。ドライバーが1仕事ごとに登録する。"""
 
