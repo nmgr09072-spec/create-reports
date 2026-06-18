@@ -53,7 +53,8 @@ class FilterForm(forms.Form):
     date = forms.DateField(
         required=False,
         label="日付で絞り込み",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+        input_formats=["%Y-%m-%d"],
     )
     driver_name = forms.ChoiceField(
         required=False,
