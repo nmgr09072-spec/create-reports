@@ -87,10 +87,10 @@
       <td class="s3" colspan="2">{{ slot.r1.counts|default:"" }}</td>
       <td class="s6" colspan="7">{{ slot.r1.end_time|default:"" }}</td>
     </tr>
-    <!-- 上段: 偶数行 (6,8,10,12,14) / 最終スロットは太線 -->
+    <!-- 上段: 偶数行 (6,8,10,12,14) / B・C列は常に細線、D列以降のみ最終行で太線 -->
     <tr style="height:25px">
-      <td class="{% if forloop.last %}s10{% else %}s7{% endif %}">{% if slot.driver %}¥{% endif %}</td>
-      <td class="{% if forloop.last %}s9{% else %}s6{% endif %}"></td>
+      <td class="s7">{% if slot.driver %}¥{% endif %}</td>
+      <td class="s6"></td>
       <td class="{% if forloop.last %}s8{% else %}s3{% endif %}">{{ slot.r2.name|default:"" }}</td>
       <td class="{% if forloop.last %}s8{% else %}s3{% endif %}" colspan="2">{{ slot.r2.counts|default:"" }}</td>
       <td class="{% if forloop.last %}s9{% else %}s6{% endif %}" colspan="7">{{ slot.r2.end_time|default:"" }}</td>
