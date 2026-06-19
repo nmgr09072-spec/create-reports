@@ -80,7 +80,7 @@ def delete(request, pk: int):
 
 
 def company_report(request):
-    """業務日報：日付ごとにドライバーの売上・件数を集計して表示する。"""
+    """業務日報：日付ごとにドライバーの売上・件数・勤務時間を集計して表示する。"""
     dates = (
         WorkRecord.objects.values_list("date", flat=True)
         .distinct()
@@ -90,25 +90,67 @@ def company_report(request):
     report_data = []
     for d in dates:
         records = WorkRecord.objects.filter(date=d)
+        driver_names = sorted(records.values_list("driver_name", flat=True).distinct())
 
-        driver_summary = (
-            records.values("driver_name")
-            .annotate(
-                total_amount=Sum("amount"),
-                total_count=Count("id"),
-                disposal=Count("id", filter=Q(job_type="処分")),
-                purchase=Count("id", filter=Q(job_type="買取")),
-                estimate=Count("id", filter=Q(job_type="見積")),
-                other=Count("id", filter=Q(job_type="その他")),
-            )
-            .order_by("driver_name")
-        )
+        drivers = []
+        for name in driver_names:
+            dr = records.filter(driver_name=name)
+            total = dr.aggregate(total=Sum("amount"))["total"] or 0
+
+            count_parts = []
+            for jt in ["処分", "買取", "見積", "その他"]:
+                cnt = dr.filter(job_type=jt).count()
+                if cnt:
+                    count_parts.append(f"{jt}{cnt}件")
+            counts_str = "・".join(count_parts)
+
+            times = [r.time for r in dr if r.time and "~" in r.time]
+            starts, ends = [], []
+            for t in times:
+                parts = t.split("~")
+                if len(parts) == 2:
+                    s, e = parts[0].strip(), parts[1].strip()
+                    if s:
+                        starts.append(s)
+                    if e:
+                        ends.append(e)
+
+            work_start = min(starts) if starts else ""
+            work_end = max(ends) if ends else ""
+            work_hours = f"{work_start} ~ {work_end}" if work_start else ""
+
+            drivers.append({
+                "name": name,
+                "total": total,
+                "counts": counts_str,
+                "end_time": work_end,
+                "work_hours": work_hours,
+            })
 
         day_total = records.aggregate(total=Sum("amount"))["total"] or 0
 
+        def _get(lst: list, i: int):
+            return lst[i] if i < len(lst) else None
+
+        # 上段 10行: 左=ドライバー金額, 右=同ドライバーの仕事件数+終業時間
+        upper_rows = [
+            {"left": _get(drivers, i), "right": _get(drivers, i)}
+            for i in range(10)
+        ]
+        # 下段 6行: 左=11人目以降の金額, 右2列=11人目以降の勤務時間
+        lower_rows = [
+            {
+                "left": _get(drivers, 10 + i),
+                "r1": _get(drivers, 10 + i),
+                "r2": _get(drivers, 16 + i),
+            }
+            for i in range(6)
+        ]
+
         report_data.append({
             "date": d,
-            "drivers": list(driver_summary),
+            "upper_rows": upper_rows,
+            "lower_rows": lower_rows,
             "day_total": day_total,
         })
 
