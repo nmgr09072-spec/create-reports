@@ -4,141 +4,167 @@
 
 {% block content %}
 <style>
-  /* ページ幅を広げて表が見やすいよう調整 */
-  main { max-width: 1100px !important; }
+  main { max-width: none !important; }
 
-  .report-block { margin-bottom: 40px; }
-
-  .report-date-header {
-    font-size: 17px;
-    font-weight: bold;
-    color: #2c3e50;
-    padding: 6px 0 8px;
-    margin-bottom: 10px;
+  .report-block { margin-bottom: 48px; }
+  .report-date {
+    font-size: 16px; font-weight: bold; color: #2c3e50;
+    padding: 4px 0 8px; margin-bottom: 8px;
     border-bottom: 2px solid #2c3e50;
-    letter-spacing: 0.05em;
   }
 
-  /* Excelライクなテーブルリセット */
-  .ct {
+  /* Excel忠実再現テーブル */
+  .ex {
     border-collapse: collapse;
-    border: 2px solid #2c3e50;
-    font-size: 13px;
     table-layout: fixed;
-    width: auto;
-    min-width: 680px;
+    font-size: 12px;
+    font-family: Arial, "Hiragino Sans", sans-serif;
   }
-  .ct td {
-    border: 1px solid #aab;
-    padding: 2px 7px;
-    height: 25px;
-    vertical-align: middle;
-    white-space: nowrap;
-    overflow: hidden;
-    background: #fff;
-  }
-  /* 基底のhoverを打ち消す */
-  .ct tr:hover td { background: #fff; }
+  /* ベーステーブルのスタイルをリセット */
+  .ex td { padding: 2px 4px; vertical-align: middle; white-space: nowrap; overflow: hidden; background: #fff; }
+  .ex tr:hover td { background: #fff; }
 
-  /* 列幅 */
-  .ct .c-name  { width: 100px; }
-  .ct .c-yen   { width: 18px; text-align: center; }
-  .ct .c-amt   { width: 90px; text-align: right; border-right: 2px solid #2c3e50; }
-  .ct .c-sname { width: 90px; border-left: 2px solid #2c3e50; }
-  .ct .c-det   { width: 155px; font-size: 12px; }
-  .ct .c-s2    { width: 90px; border-left: 2px solid #2c3e50; }
-  .ct .c-det2  { width: 100px; font-size: 12px; text-align: center; }
-  .ct .c-et    { width: 72px; text-align: center; font-size: 12px; }
+  /* Excelエクスポートのsクラスをそのまま再現 */
+  .ex .s3  { border-bottom:1px solid #000; border-right:1px solid #000; text-align:left; }
+  .ex .s4  { border-bottom:1px dashed #666; border-right:1px solid #b7b7b7; text-align:center; }
+  .ex .s5  { border-bottom:1px dashed #666; border-right:3px solid #000; text-align:left; }
+  .ex .s6  { border-bottom:1px solid #000; border-right:3px solid #000; text-align:left; }
+  .ex .s7  { border-bottom:1px solid #000; border-right:1px solid #b7b7b7; text-align:center; }
+  .ex .s8  { border-bottom:3px solid #000; border-right:1px solid #000; text-align:left; }
+  .ex .s9  { border-bottom:3px solid #000; border-right:3px solid #000; text-align:left; }
+  .ex .s10 { border-bottom:3px solid #000; border-right:1px solid #b7b7b7; text-align:center; }
+  .ex .s11 { border-bottom:1px solid #000; border-right:1px solid #000; text-align:center; }
+  .ex .s12 { text-align:left; }
+  .ex .s13 { border-right:1px solid #000; text-align:left; }
+  .ex .s14 { border-right:3px solid #000; text-align:left; }
+  .ex .s15 { border-bottom:3px solid #000; text-align:left; }
 
-  /* 上段と下段の境界 */
-  .ct tr.sec-lower td { border-top: 2px solid #2c3e50; }
-
-  /* 集計行との境界 */
-  .ct tr.sec-summary td { border-top: 2px solid #2c3e50; }
-
-  /* 集計ラベル */
-  .ct .lbl { font-weight: bold; }
-
-  /* 合計行の下 */
-  .ct tr.row-total td { border-bottom: 2px solid #2c3e50; }
+  /* A列: 左外枠（太線） */
+  .ex .la { border-left: 3px solid #000; }
 </style>
 
 <h1>業務日報</h1>
 
 {% if report_data %}
-  {% for day in report_data %}
-  <div class="report-block">
-    <div class="report-date-header">{{ day.date }}</div>
+{% for day in report_data %}
+<div class="report-block">
+  <div class="report-date">{{ day.date }}</div>
+  <div style="overflow-x:auto;">
+  <table class="ex">
+    <colgroup>
+      <col style="width:100px"> <!-- A: ドライバー名 -->
+      <col style="width:45px">  <!-- B: ¥ -->
+      <col style="width:100px"> <!-- C: 集金額 -->
+      <col style="width:65px">  <!-- D: スタッフ名 -->
+      <col style="width:128px"> <!-- E: 仕事件数/勤務時間 -->
+      <col style="width:84px">  <!-- F: スタッフ名2/勤務時間2 -->
+      <col style="width:14px">  <!-- G -->
+      <col style="width:13px">  <!-- H -->
+      <col style="width:12px">  <!-- I -->
+      <col style="width:8px">   <!-- J -->
+      <col style="width:4px">   <!-- K -->
+      <col style="width:14px">  <!-- L -->
+      <col style="width:15px">  <!-- M -->
+    </colgroup>
 
-    <table class="ct">
-      <colgroup>
-        <col class="c-name">
-        <col class="c-yen">
-        <col class="c-amt">
-        <col class="c-sname">
-        <col class="c-det">
-        <col class="c-s2">
-        <col class="c-det2">
-      </colgroup>
+    <!-- 行4相当: ヘッダー区切り線（上部太線） -->
+    <tr style="height:20px">
+      <td class="la" style="border-top:3px solid #000;border-bottom:3px solid #000;"></td>
+      <td style="border-top:3px solid #000;border-bottom:3px solid #000;border-right:1px solid #b7b7b7;"></td>
+      <td style="border-top:3px solid #000;border-bottom:3px solid #000;border-right:3px solid #000;"></td>
+      <td colspan="10" style="border-top:3px solid #000;border-bottom:3px solid #000;border-right:3px solid #000;"></td>
+    </tr>
 
-      <!-- ===== 上段：仕事件数 + 終業時間 ===== -->
-      {% for row in day.upper_rows %}
-      <tr>
-        <!-- 左：ドライバー名 + 集金額 -->
-        <td class="c-name">{{ row.left.name|default:"" }}</td>
-        <td class="c-yen">{% if row.left %}¥{% endif %}</td>
-        <td class="c-amt">{% if row.left %}{{ row.left.total|floatformat:0 }}{% endif %}</td>
-        <!-- 右：スタッフ名 + 仕事件数 + 終業時間 -->
-        <td class="c-sname">{{ row.right.name|default:"" }}</td>
-        <td class="c-det">{{ row.right.counts|default:"" }}</td>
-        <td class="c-s2"></td>
-        <td class="c-det2 c-et">{{ row.right.end_time|default:"" }}</td>
-      </tr>
-      {% endfor %}
+    <!-- ===== 上段: 5スロット × 2行 (Excel行5〜14) ===== -->
+    <!-- A列 rowspan=2, E+F列 colspan=2, G〜M列 colspan=7 -->
+    {% for slot in day.upper_slots %}
+    <!-- 上段: 奇数行 (5,7,9,11,13) -->
+    <tr style="height:25px">
+      <td class="s3 la" rowspan="2">{{ slot.driver.name|default:"" }}</td>
+      <td class="s4">{% if slot.driver %}¥{% endif %}</td>
+      <td class="s5">{% if slot.driver %}{{ slot.driver.total|floatformat:0 }}{% endif %}</td>
+      <td class="s3">{{ slot.r1.name|default:"" }}</td>
+      <td class="s3" colspan="2">{{ slot.r1.counts|default:"" }}</td>
+      <td class="s6" colspan="7">{{ slot.r1.end_time|default:"" }}</td>
+    </tr>
+    <!-- 上段: 偶数行 (6,8,10,12,14) / 最終スロットは太線 -->
+    <tr style="height:25px">
+      <td class="{% if forloop.last %}s10{% else %}s7{% endif %}">{% if slot.driver %}¥{% endif %}</td>
+      <td class="{% if forloop.last %}s9{% else %}s6{% endif %}"></td>
+      <td class="{% if forloop.last %}s8{% else %}s3{% endif %}">{{ slot.r2.name|default:"" }}</td>
+      <td class="{% if forloop.last %}s8{% else %}s3{% endif %}" colspan="2">{{ slot.r2.counts|default:"" }}</td>
+      <td class="{% if forloop.last %}s9{% else %}s6{% endif %}" colspan="7">{{ slot.r2.end_time|default:"" }}</td>
+    </tr>
+    {% endfor %}
 
-      <!-- ===== 下段：勤務時間（2列） ===== -->
-      {% for row in day.lower_rows %}
-      <tr{% if forloop.first %} class="sec-lower"{% endif %}>
-        <!-- 左：ドライバー名 + 集金額（続き） -->
-        <td class="c-name">{{ row.left.name|default:"" }}</td>
-        <td class="c-yen">{% if row.left %}¥{% endif %}</td>
-        <td class="c-amt">{% if row.left %}{{ row.left.total|floatformat:0 }}{% endif %}</td>
-        <!-- 右：2グループ各スタッフ名 + 勤務時間 -->
-        <td class="c-sname">{{ row.r1.name|default:"" }}</td>
-        <td class="c-det">{{ row.r1.work_hours|default:"" }}</td>
-        <td class="c-s2">{{ row.r2.name|default:"" }}</td>
-        <td class="c-det2">{{ row.r2.work_hours|default:"" }}</td>
-      </tr>
-      {% endfor %}
+    <!-- ===== 下段: 3スロット × 2行 (Excel行15〜20) ===== -->
+    <!-- D/E/Fが個別列、G〜M colspan=7 -->
+    {% for slot in day.lower_slots %}
+    <!-- 下段: 奇数行 (15,17,19) -->
+    <tr style="height:25px">
+      <td class="s3 la" rowspan="2">{{ slot.driver.name|default:"" }}</td>
+      <td class="s4">{% if slot.driver %}¥{% endif %}</td>
+      <td class="s5">{% if slot.driver %}{{ slot.driver.total|floatformat:0 }}{% endif %}</td>
+      <td class="s3">{{ slot.r1_c1.name|default:"" }}</td>
+      <td class="s3">{{ slot.r1_c1.work_hours|default:"" }}</td>
+      <td class="s3">{{ slot.r1_c2.name|default:"" }}</td>
+      <td class="s6" colspan="7">{{ slot.r1_c2.work_hours|default:"" }}</td>
+    </tr>
+    <!-- 下段: 偶数行 (16,18,20) / 最終スロットは太線 -->
+    <tr style="height:25px">
+      <td class="{% if forloop.last %}s10{% else %}s7{% endif %}">{% if slot.driver %}¥{% endif %}</td>
+      <td class="{% if forloop.last %}s9{% else %}s6{% endif %}"></td>
+      <td class="{% if forloop.last %}s8{% else %}s3{% endif %}">{{ slot.r2_c1.name|default:"" }}</td>
+      <td class="{% if forloop.last %}s8{% else %}s3{% endif %}">{{ slot.r2_c1.work_hours|default:"" }}</td>
+      <td class="{% if forloop.last %}s8{% else %}s3{% endif %}">{{ slot.r2_c2.name|default:"" }}</td>
+      <td class="{% if forloop.last %}s9{% else %}s6{% endif %}" colspan="7">{{ slot.r2_c2.work_hours|default:"" }}</td>
+    </tr>
+    {% endfor %}
 
-      <!-- ===== 集計行 ===== -->
-      <tr class="sec-summary">
-        <td class="c-name lbl">売上</td>
-        <td class="c-yen lbl">¥</td>
-        <td class="c-amt lbl">{{ day.day_total|floatformat:0 }}</td>
-        <td class="c-sname lbl">処理場</td>
-        <td class="c-det"></td>
-        <td class="c-s2 lbl">その他</td>
-        <td class="c-det2"></td>
-      </tr>
-      <tr>
-        <td class="c-name lbl">廃材処理</td>
-        <td class="c-yen lbl">¥</td>
-        <td class="c-amt"></td>
-        <td class="c-sname" colspan="4"></td>
-      </tr>
-      <tr class="row-total">
-        <td class="c-name lbl">合計</td>
-        <td class="c-yen lbl">¥</td>
-        <td class="c-amt lbl">{{ day.day_total|floatformat:0 }}</td>
-        <td class="c-sname" colspan="4"></td>
-      </tr>
-    </table>
+    <!-- 行21: 売上 | ¥ | 金額 | 処理場 | | その他 | -->
+    <tr style="height:25px">
+      <td class="s3 la">売上</td>
+      <td class="s11">¥</td>
+      <td class="s3">{{ day.day_total|floatformat:0 }}</td>
+      <td class="s12">処理場</td>
+      <td class="s13"></td>
+      <td class="s12">その他</td>
+      <td class="s14" colspan="7"></td>
+    </tr>
+
+    <!-- 行22: 廃材処理 | ¥ | | (D〜E rowspan=2) | (F〜M rowspan=2) -->
+    <tr style="height:25px">
+      <td class="s3 la">廃材処理</td>
+      <td class="s11">¥</td>
+      <td class="s3"></td>
+      <td class="s3" colspan="2" rowspan="2"></td>
+      <td class="s6" colspan="8" rowspan="2"></td>
+    </tr>
+
+    <!-- 行23: 合計 | ¥ | 金額 | (D〜M は行22から結合) -->
+    <tr style="height:43px">
+      <td class="s3 la">合計</td>
+      <td class="s11">¥</td>
+      <td class="s3">{{ day.day_total|floatformat:0 }}</td>
+    </tr>
+
+    <!-- 行24: 余白行（太下線） -->
+    <tr style="height:63px">
+      <td class="s8 la"></td>
+      <td class="s10"></td>
+      <td class="s15"></td>
+      <td class="s15"></td>
+      <td class="s15"></td>
+      <td class="s15"></td>
+      <td class="s9" colspan="7"></td>
+    </tr>
+  </table>
   </div>
-  {% endfor %}
+</div>
+{% endfor %}
 {% else %}
-  <div class="card">
-    <p style="color:#888;">まだ記録がありません。</p>
-  </div>
+<div class="card">
+  <p style="color:#888;">まだ記録がありません。</p>
+</div>
 {% endif %}
 {% endblock %}
