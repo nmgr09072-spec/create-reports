@@ -194,9 +194,14 @@ def work_end(request):
             logger.info("業務終了%s: %s %s %s", action, driver_name, today, now)
         return redirect("reports:work_end")
 
+    driver_status = [
+        {"driver": d, "log": logs.get(d.name)}
+        for d in drivers
+    ]
+
     return render(request, "reports/work_end.html", {
-        "drivers": drivers,
-        "logs": logs,
+        "driver_status": driver_status,
+        "logs": list(logs.values()),
         "today": today,
     })
 
