@@ -13,4 +13,5 @@ urlpatterns = [
     path("company/", views.company_report, name="company"),
     path("drivers/", views.driver_list, name="drivers"),
     path("drivers/delete/<int:pk>/", views.driver_delete, name="driver_delete"),
+    path("work-end/", views.work_end, name="work_end"),
 ]
