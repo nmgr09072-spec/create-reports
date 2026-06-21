@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from expenses.models import Expense
 from .forms import DriverForm, FilterForm, WorkRecordForm
-from .models import Driver, WorkRecord
+from .models import Driver, DriverDailyLog, WorkRecord
 
 logger = logging.getLogger(__name__)
 
