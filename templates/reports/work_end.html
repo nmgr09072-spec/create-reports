@@ -9,23 +9,23 @@
   <p style="color:#555;margin-bottom:20px;">業務が終わったらボタンを押してください。現在時刻が自動で記録されます。</p>
 
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
-    {% for driver in drivers %}
-    <div style="border:1px solid #dde3ec;border-radius:8px;padding:20px;text-align:center;background:{% if driver.name in logs %}#f0fdf4{% else %}#fff{% endif %};">
-      <div style="font-size:1.1rem;font-weight:bold;margin-bottom:8px;">{{ driver.name }}</div>
+    {% for item in driver_status %}
+    <div style="border:1px solid #dde3ec;border-radius:8px;padding:20px;text-align:center;background:{% if item.log %}#f0fdf4{% else %}#fff{% endif %};">
+      <div style="font-size:1.1rem;font-weight:bold;margin-bottom:8px;">{{ item.driver.name }}</div>
 
-      {% if driver.name in logs %}
+      {% if item.log %}
       <div style="color:#16a34a;font-size:0.9rem;margin-bottom:12px;">
-        ✅ {{ logs[driver.name].end_time|time:"H:i" }} 終了済み
+        ✅ {{ item.log.end_time|time:"H:i" }} 終了済み
       </div>
       {% endif %}
 
       <form method="POST">
         {% csrf_token %}
-        <input type="hidden" name="driver_name" value="{{ driver.name }}">
+        <input type="hidden" name="driver_name" value="{{ item.driver.name }}">
         <button type="submit"
           style="width:100%;padding:12px;border:none;border-radius:6px;font-size:1rem;font-weight:bold;cursor:pointer;
-          background:{% if driver.name in logs %}#dcfce7;color:#15803d{% else %}#ef4444;color:#fff{% endif %};">
-          {% if driver.name in logs %}再打刻{% else %}業務終了{% endif %}
+          {% if item.log %}background:#dcfce7;color:#15803d;{% else %}background:#ef4444;color:#fff;{% endif %}">
+          {% if item.log %}再打刻{% else %}業務終了{% endif %}
         </button>
       </form>
     </div>
@@ -43,9 +43,9 @@
       <tr><th>ドライバー</th><th>終了時刻</th></tr>
     </thead>
     <tbody>
-      {% for name, log in logs.items %}
+      {% for log in logs %}
       <tr>
-        <td>{{ name }}</td>
+        <td>{{ log.driver_name }}</td>
         <td>{{ log.end_time|time:"H:i" }}</td>
       </tr>
       {% endfor %}
