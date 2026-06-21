@@ -1,0 +1,118 @@
+{% extends "reports/base.html" %}
+{% block title %}経費管理{% endblock %}
+{% block nav_expenses %}active{% endblock %}
+
+{% block content %}
+<h1>経費管理</h1>
+
+<!-- 登録フォーム -->
+<div class="card">
+  <h2>経費を登録する</h2>
+
+  <!-- 処理場プリセット選択 -->
+  <div class="form-group" style="margin-bottom:8px;">
+    <label for="id_use_preset">📋 登録済み処理場から選ぶ（選ぶと自動入力）</label>
+    <select id="id_use_preset" class="form-select" style="width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:4px;font-size:14px;">
+      <option value="">--- 選択してください ---</option>
+      {% for site in preset_sites %}
+      <option value="{{ site.name }}">{{ site.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <form method="POST" action="{% url 'expenses:add' %}">
+    {% csrf_token %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label>日付</label>
+        {{ form.date }}
+      </div>
+      <div class="form-group">
+        <label>種別</label>
+        {{ form.expense_type }}
+      </div>
+      <div class="form-group">
+        <label>処理場名・内容</label>
+        {{ form.site_name }}
+      </div>
+      <div class="form-group">
+        <label>金額（円）</label>
+        {{ form.amount }}
+      </div>
+      <div class="form-group" style="grid-column:span 2;">
+        <label>備考（任意）</label>
+        {{ form.note }}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">登録する</button>
+    <a href="{% url 'expenses:sites' %}" class="btn btn-secondary" style="margin-left:8px;">処理場マスター管理</a>
+  </form>
+</div>
+
+<!-- 経費一覧 -->
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h2 style="margin:0;">経費一覧</h2>
+    <form method="GET" style="display:flex;gap:8px;align-items:center;">
+      <input type="date" name="date" value="{{ date_filter }}"
+             style="padding:6px 10px;border:1px solid #ccc;border-radius:4px;font-size:13px;">
+      <button type="submit" class="btn btn-secondary btn-sm">絞り込み</button>
+      {% if date_filter %}
+      <a href="{% url 'expenses:list' %}" class="btn btn-sm" style="background:#eee;color:#555;">クリア</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if expenses %}
+  <table>
+    <thead>
+      <tr>
+        <th>日付</th>
+        <th>種別</th>
+        <th>処理場名・内容</th>
+        <th class="text-right">金額</th>
+        <th>備考</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in expenses %}
+      <tr>
+        <td>{{ e.date }}</td>
+        <td>{{ e.expense_type }}</td>
+        <td>{{ e.site_name }}</td>
+        <td class="text-right">¥{{ e.amount|floatformat:0 }}</td>
+        <td>{{ e.note }}</td>
+        <td>
+          <form method="POST" action="{% url 'expenses:delete' e.pk %}"
+                onsubmit="return confirm('削除しますか？')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">削除</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr style="font-weight:bold;background:#f0f3f7;">
+        <td colspan="3">合計</td>
+        <td class="text-right">¥{{ total|floatformat:0 }}</td>
+        <td colspan="2"></td>
+      </tr>
+    </tfoot>
+  </table>
+  {% else %}
+  <p style="color:#888;text-align:center;padding:24px 0;">経費の記録がありません。</p>
+  {% endif %}
+</div>
+
+<script>
+  // 処理場プリセット選択 → 処理場名欄に自動入力
+  document.getElementById('id_use_preset').addEventListener('change', function () {
+    const name = this.value;
+    if (name) {
+      document.getElementById('id_site_name').value = name;
+    }
+  });
+</script>
+{% endblock %}
