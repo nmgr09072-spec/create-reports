@@ -129,6 +129,7 @@ def company_report(request):
             })
 
         day_total = records.aggregate(total=Sum("amount"))["total"] or 0
+        processing_expenses = Expense.objects.filter(date=d, expense_type="処理場")
 
         def _get(i: int):
             return drivers[i] if i < len(drivers) else None
