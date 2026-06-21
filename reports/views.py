@@ -175,6 +175,32 @@ def company_report(request):
     return render(request, "reports/company.html", {"report_data": report_data})
 
 
+def work_end(request):
+    """業務終了ボタン。ドライバーが押すと現在時刻を終了時刻として記録する。"""
+    drivers = Driver.objects.all()
+    today = date.today()
+    logs = {log.driver_name: log for log in DriverDailyLog.objects.filter(date=today)}
+
+    if request.method == "POST":
+        driver_name = request.POST.get("driver_name", "").strip()
+        if driver_name:
+            now = datetime.now().time().replace(second=0, microsecond=0)
+            obj, created = DriverDailyLog.objects.update_or_create(
+                driver_name=driver_name,
+                date=today,
+                defaults={"end_time": now},
+            )
+            action = "登録" if created else "更新"
+            logger.info("業務終了%s: %s %s %s", action, driver_name, today, now)
+        return redirect("reports:work_end")
+
+    return render(request, "reports/work_end.html", {
+        "drivers": drivers,
+        "logs": logs,
+        "today": today,
+    })
+
+
 def driver_list(request):
     """ドライバー一覧・登録画面。"""
     if request.method == "POST":
