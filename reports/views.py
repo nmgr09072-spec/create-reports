@@ -212,3 +212,84 @@ def driver_delete(request, pk: int):
         logger.info("ドライバーを削除: %s", driver.name)
         driver.delete()
     return redirect("reports:drivers")
+
+
+def print_today(request):
+    """今日の全ドライバー作業日報＋業務日報を印刷用ページで表示する。"""
+    target_date = request.GET.get("date") or date.today()
+    if isinstance(target_date, str):
+        from datetime import datetime as dt
+        try:
+            target_date = dt.strptime(target_date, "%Y-%m-%d").date()
+        except ValueError:
+            target_date = date.today()
+
+    # ── 個人作業日報（ドライバーごと）──────────────────────────
+    drivers_with_records = (
+        WorkRecord.objects.filter(date=target_date)
+        .values_list("driver_name", flat=True)
+        .distinct()
+        .order_by("driver_name")
+    )
+
+    driver_reports = []
+    for name in drivers_with_records:
+        records = WorkRecord.objects.filter(date=target_date, driver_name=name).order_by("created_at")
+        totals = {}
+        for jt in ["処分", "買取", "見積", "その他"]:
+            agg = records.filter(job_type=jt).aggregate(cnt=Count("id"), total=Sum("amount"))
+            if agg["cnt"]:
+                totals[jt] = {"count": agg["cnt"], "total": agg["total"] or 0}
+        grand_total = records.aggregate(total=Sum("amount"))["total"] or 0
+        log = DriverDailyLog.objects.filter(driver_name=name, date=target_date).first()
+        driver_reports.append({
+            "name": name,
+            "records": records,
+            "totals": totals,
+            "grand_total": grand_total,
+            "end_time": log.end_time.strftime("%H:%M") if log else "―",
+        })
+
+    # ── 業務日報（company_report と同じロジック）───────────────
+    records_all = WorkRecord.objects.filter(date=target_date)
+    driver_names = sorted(records_all.values_list("driver_name", flat=True).distinct())
+    logs = {log.driver_name: log for log in DriverDailyLog.objects.filter(date=target_date)}
+
+    company_drivers = []
+    for name in driver_names:
+        dr = records_all.filter(driver_name=name)
+        total = dr.aggregate(total=Sum("amount"))["total"] or 0
+        count_parts = []
+        for jt in ["処分", "買取", "見積", "その他"]:
+            cnt = dr.filter(job_type=jt).count()
+            if cnt:
+                count_parts.append(f"{jt}{cnt}件")
+        log = logs.get(name)
+        company_drivers.append({
+            "name": name,
+            "total": total,
+            "counts": "・".join(count_parts),
+            "end_time": log.end_time.strftime("%H:%M") if log else "",
+        })
+
+    def _get(i):
+        return company_drivers[i] if i < len(company_drivers) else None
+
+    upper_slots = [{"driver": _get(i), "r1": _get(i * 2), "r2": _get(i * 2 + 1)} for i in range(5)]
+    lower_slots = [
+        {"driver": _get(5 + i), "r1_c1": _get(10 + i * 4), "r1_c2": _get(10 + i * 4 + 1),
+         "r2_c1": _get(10 + i * 4 + 2), "r2_c2": _get(10 + i * 4 + 3)}
+        for i in range(3)
+    ]
+
+    day_total = records_all.aggregate(total=Sum("amount"))["total"] or 0
+    processing_expenses = Expense.objects.filter(date=target_date, expense_type="処理場")
+
+    return render(request, "reports/print_today.html", {
+        "target_date": target_date,
+        "driver_reports": driver_reports,
+        "upper_slots": upper_slots,
+        "lower_slots": lower_slots,
+        "day_total": day_total,
+        "processing_expenses": processing_expenses,
+    })
