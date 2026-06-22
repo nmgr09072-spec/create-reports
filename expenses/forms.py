@@ -7,6 +7,13 @@ from .models import Expense, ProcessingSite
 class ExpenseForm(forms.ModelForm):
     """経費入力フォーム。処理場はドロップダウン＋自由入力の両対応。"""
 
+    amount = forms.IntegerField(
+        label="金額（円）",
+        min_value=0,
+        required=True,
+        widget=forms.NumberInput(attrs={"class": "form-input", "placeholder": "例：3000", "min": "0"}),
+    )
+
     use_preset = forms.ModelChoiceField(
         queryset=ProcessingSite.objects.all(),
         required=False,
