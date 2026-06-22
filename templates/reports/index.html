@@ -96,6 +96,13 @@
   startEl.addEventListener('change', sync);
   endEl.addEventListener('change', sync);
 
+  // お客様名：フォーカスが外れたとき「様」を自動補完
+  var customerEl = document.getElementById('id_customer_name');
+  customerEl.addEventListener('blur', function () {
+    var v = this.value.trim();
+    if (v && !v.endsWith('様')) this.value = v + '様';
+  });
+
   // 空欄チェック対象（任意項目のみ）
   var optionalFields = [
     { id: 'id_place',    label: '地名' },
